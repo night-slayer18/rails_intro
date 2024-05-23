@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Articles</title>
+    <style>
+        h1 {
+        color: blue;
+        text-align: center;
+        }
+
+        input[type="text"] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+        background-color: #45a049;
+        }
+
+        form {
+        width: 50%;
+        margin: 0 auto;
+        }
+
+        table {
+        width: 50%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        }
+
+        th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+        }
+
+        th {
+        background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+        background-color: #f2f2f2;
+        }
+
+        tr:hover {
+        background-color: #f5f5f5;
+        }
+
+        a {
+        text-decoration: none;
+        color: blue;
+        }
+
+        a:hover {
+        text-decoration: underline;
+        }
+
+        .actions {
+        display: flex;
+        justify-content: space-between;
+        }
+
+        .actions a {
+        margin-right: 10px;
+        }
+
+        .popup {
+          display: none;
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          padding: 20px;
+          background: white;
+          border: 1px solid #ccc;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          z-index: 1000;
+          width: 80%;
+          max-width: 600px;
+        }
+
+        .popup h2 {
+          margin: 0 0 10px;
+        }
+
+        .popup .close {
+          position: absolute;
+          right: 10px;
+          top: 10px;
+          cursor: pointer;
+        }
+
+        .overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          z-index: 999;
+        }
+  </style>
+  </head>
+  <body>
+    <h1>Articles</h1>
+    <form>
+      <input type="text" name="title" placeholder="Title" required>
+      <input type="text" name="body" placeholder="Body" required>
+      <input type="submit" value="Create Article">
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Body</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <div class="overlay" onclick="closePopup()"></div>
+
+    <div class="popup" id="popup">
+      <span class="close" onclick="closePopup()">&times;</span>
+      <h2 id="popup-title">Article</h2>
+      <p id="popup-content"></p>
+      <form id="edit-form" style="display: none;">
+        <input type="text" name="edit-title" placeholder="Title" required>
+        <input type="text" name="edit-body" placeholder="Body" required>
+        <input type="submit" value="Update Article">
+      </form>
+    </div>
+  </body>
+  <script>
+    const articles = [];
+
+    const form = document.querySelector("form");
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const title = event.target.title.value;
+      const body = event.target.body.value;
+      const article = { id: articles.length + 1, title, body };
+      articles.push(article);
+      renderArticles();
+      event.target.reset();
+    });
+
+    const tbody = document.querySelector("tbody");
+
+    function renderArticles() {
+      tbody.innerHTML = "";
+      articles.forEach(article => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${article.title}</td>
+          <td>${article.body}</td>
+          <td class="actions">
+            <a href="#" onclick="showArticle(${article.id})">Show</a>
+            <a href="#" onclick="editArticle(${article.id})">Edit</a>
+            <a href="#" onclick="deleteArticle(${article.id})">Delete</a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showArticle(id) {
+      const article = articles.find(a => a.id === id);
+      if (article) {
+        document.getElementById('popup-title').textContent = article.title;
+        document.getElementById('popup-content').textContent = article.body;
+        document.querySelector('.overlay').style.display = 'block';
+        document.getElementById('popup').style.display = 'block';
+        document.getElementById('edit-form').style.display = 'none';
+      }
+    }
+
+    function editArticle(id) {
+      const article = articles.find(a => a.id === id);
+      if (article) {
+        const editForm = document.getElementById('edit-form');
+        editForm.style.display = 'block';
+        editForm['edit-title'].value = article.title;
+        editForm['edit-body'].value = article.body;
+
+        editForm.onsubmit = function (event) {
+          event.preventDefault();
+          article.title = editForm['edit-title'].value;
+          article.body = editForm['edit-body'].value;
+          renderArticles();
+          closePopup();
+        };
+
+        document.getElementById('popup-title').textContent = "Edit Article";
+        document.querySelector('.overlay').style.display = 'block';
+        document.getElementById('popup').style.display = 'block';
+        document.getElementById('popup-content').textContent = "";
+      }
+    }
+
+    function deleteArticle(id) {
+      const index = articles.findIndex(a => a.id === id);
+      if (index !== -1) {
+        articles.splice(index, 1);
+        renderArticles();
+        closePopup();
+      }
+    }
+
+    function closePopup() {
+      document.querySelector('.overlay').style.display = 'none';
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    // Initial render
+    renderArticles();
+  </script>
+</html>
