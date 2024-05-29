@@ -171,6 +171,10 @@
     const tbody = document.querySelector("tbody");
 
     function renderArticles() {
+      if (articles.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>No articles</td></tr>";
+        return;
+      }
       tbody.innerHTML = "";
       articles.forEach(article => {
         const tr = document.createElement("tr");
